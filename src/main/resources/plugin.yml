@@ -3,7 +3,7 @@ version: '${project.version}'
 main: org.caique.lobbypluginv1.Lobbypluginv1
 api-version: '1.21'
 author: Caique
-description: Plugin de Lobby para Minecraft 1.21 com sistema de autenticação, scoreboard e chat personalizado
+description: Plugin de Lobby para Minecraft 1.21 com sistema completo
 
 commands:
   login:
@@ -16,7 +16,16 @@ commands:
     usage: /register <senha> <confirmar_senha>
     aliases: [reg]
 
+  amigos:
+    description: Sistema de amigos
+    usage: /amigos <listar|add|remove|aceitar|recusar> [nick]
+    aliases: [friends, friend]
+
 permissions:
   lobby.auth.bypass:
     description: Bypass do sistema de autenticação
     default: false
+
+  lobby.friends.admin:
+    description: Permissões administrativas do sistema de amigos
+    default: op
