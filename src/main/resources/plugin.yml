@@ -1,0 +1,22 @@
+name: LobbyPluginV1
+version: '${project.version}'
+main: org.caique.lobbypluginv1.Lobbypluginv1
+api-version: '1.21'
+author: Caique
+description: Plugin de Lobby para Minecraft 1.21 com sistema de autenticação
+
+commands:
+  login:
+    description: Fazer login na conta
+    usage: /login <senha>
+    aliases: [l]
+
+  register:
+    description: Criar uma nova conta
+    usage: /register <senha> <confirmar_senha>
+    aliases: [reg]
+
+permissions:
+  lobby.auth.bypass:
+    description: Bypass do sistema de autenticação
+    default: false
