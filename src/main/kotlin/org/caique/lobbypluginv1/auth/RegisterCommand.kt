@@ -16,14 +16,14 @@ class RegisterCommand(private val authManager: AuthManager) : CommandExecutor {
 
         val player = sender
 
-        // Verifica se já está autenticado
+
         if (authManager.isPlayerAuthenticated(player.uniqueId)) {
             player.sendMessage("§c✗ Você já está autenticado!")
             player.playSound(player.location, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
             return true
         }
 
-        // Verifica argumentos
+
         if (args.size < 2) {
             sendRegisterUsage(player)
             return true
@@ -32,20 +32,20 @@ class RegisterCommand(private val authManager: AuthManager) : CommandExecutor {
         val password = args[0]
         val confirmPassword = args[1]
 
-        // Validações básicas
+
         if (password.isBlank() || confirmPassword.isBlank()) {
             player.sendMessage("§c✗ As senhas não podem estar vazias!")
             player.playSound(player.location, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
             return true
         }
 
-        // Verifica força da senha antes de tentar registrar
+
         if (!PasswordUtils.isPasswordStrong(password)) {
             sendPasswordStrengthInfo(player, password)
             return true
         }
 
-        // Tenta registrar
+
         player.sendMessage("§e⌛ Criando sua conta...")
         player.sendActionBar("§e⌛ Registrando...")
         player.playSound(player.location, Sound.UI_BUTTON_CLICK, 0.5f, 1.0f)

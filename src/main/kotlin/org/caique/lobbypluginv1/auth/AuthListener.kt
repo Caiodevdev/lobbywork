@@ -18,19 +18,17 @@ class AuthListener(private val authManager: AuthManager) : Listener {
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
 
-        // Remove mensagem padrão de entrada
         event.joinMessage = null
 
-        // Inicia processo de autenticação
         authManager.handlePlayerJoin(player)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        // Remove mensagem padrão de saída
+
         event.quitMessage = null
 
-        // Limpa dados da sessão
+
         authManager.cleanup(event.player.uniqueId)
     }
 
@@ -39,7 +37,7 @@ class AuthListener(private val authManager: AuthManager) : Listener {
         val player = event.player
 
         if (!authManager.isPlayerAuthenticated(player.uniqueId)) {
-            // Cancela movimento se não autenticado
+
             if (event.from.distance(event.to ?: return) > 0.1) {
                 event.isCancelled = true
                 player.teleport(event.from)
@@ -64,7 +62,7 @@ class AuthListener(private val authManager: AuthManager) : Listener {
         val command = event.message.lowercase()
 
         if (!authManager.isPlayerAuthenticated(player.uniqueId)) {
-            // Permite apenas comandos de autenticação
+
             val allowedCommands = listOf("/login", "/register", "/l", "/reg")
             val isAllowed = allowedCommands.any { command.startsWith(it) }
 
@@ -159,7 +157,7 @@ class AuthListener(private val authManager: AuthManager) : Listener {
         val player = event.player
 
         if (!authManager.isPlayerAuthenticated(player.uniqueId)) {
-            // Permite apenas teleportes do sistema (não de comandos)
+
             if (event.cause == PlayerTeleportEvent.TeleportCause.PLUGIN ||
                 event.cause == PlayerTeleportEvent.TeleportCause.COMMAND) {
                 event.isCancelled = true
@@ -170,7 +168,7 @@ class AuthListener(private val authManager: AuthManager) : Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     fun onPlayerKick(event: PlayerKickEvent) {
-        // Limpa dados quando jogador é expulso
+
         authManager.cleanup(event.player.uniqueId)
     }
 }

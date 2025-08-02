@@ -16,14 +16,14 @@ class LoginCommand(private val authManager: AuthManager) : CommandExecutor {
 
         val player = sender
 
-        // Verifica se já está autenticado
+
         if (authManager.isPlayerAuthenticated(player.uniqueId)) {
             player.sendMessage("§c✗ Você já está autenticado!")
             player.playSound(player.location, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
             return true
         }
 
-        // Verifica argumentos
+
         if (args.isEmpty()) {
             sendLoginUsage(player)
             return true
@@ -31,14 +31,14 @@ class LoginCommand(private val authManager: AuthManager) : CommandExecutor {
 
         val password = args[0]
 
-        // Validação básica
+
         if (password.isBlank()) {
             player.sendMessage("§c✗ A senha não pode estar vazia!")
             player.playSound(player.location, Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f)
             return true
         }
 
-        // Tenta fazer login
+
         player.sendMessage("§e⌛ Verificando credenciais...")
         player.sendActionBar("§e⌛ Autenticando...")
         player.playSound(player.location, Sound.UI_BUTTON_CLICK, 0.5f, 1.0f)

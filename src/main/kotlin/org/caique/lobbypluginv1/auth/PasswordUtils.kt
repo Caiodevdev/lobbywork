@@ -43,10 +43,10 @@ object PasswordUtils {
     }
 
     fun isPasswordStrong(password: String): Boolean {
-        // Mínimo 6 caracteres
+
         if (password.length < 6) return false
 
-        // Não pode ser senhas comuns
+
         val weakPasswords = listOf(
             "123456", "1234", "12345", "password", "admin",
             "qwerty", "abc123", "111111", "000000", "senha"
@@ -56,7 +56,6 @@ object PasswordUtils {
             return false
         }
 
-        // Deve ter pelo menos uma letra e um número
         val hasLetter = password.any { it.isLetter() }
         val hasDigit = password.any { it.isDigit() }
 

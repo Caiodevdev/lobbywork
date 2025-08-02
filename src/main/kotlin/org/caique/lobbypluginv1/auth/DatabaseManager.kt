@@ -12,7 +12,6 @@ class DatabaseManager {
     private var connection: Connection? = null
     private val plugin = Lobbypluginv1.instance
 
-    // Configurações do banco
     private val host = "localhost"
     private val port = 3306
     private val database = "caiquedb"
