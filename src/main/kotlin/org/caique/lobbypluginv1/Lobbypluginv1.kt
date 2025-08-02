@@ -34,10 +34,6 @@ class Lobbypluginv1 : JavaPlugin() {
         registerEvents()
 
         logger.info("$pluginName v$version foi carregado com sucesso!")
-        logger.info("Sistema de autenticação ativo!")
-        logger.info("Sistema de scoreboard ativo!")
-        logger.info("Sistema de chat personalizado ativo!")
-        logger.info("Sistema de tablist personalizada ativo!")
         logger.info("Desenvolvido por $author")
     }
 

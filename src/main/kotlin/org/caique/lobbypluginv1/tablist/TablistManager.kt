@@ -58,7 +58,6 @@ class TablistManager {
             player.setPlayerListHeader("")
             player.setPlayerListFooter("")
         } catch (e: Exception) {
-            // Ignora erro silenciosamente
         }
     }
 
