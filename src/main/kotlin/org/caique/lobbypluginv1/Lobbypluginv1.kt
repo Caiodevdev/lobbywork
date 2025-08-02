@@ -7,6 +7,10 @@ import org.caique.lobbypluginv1.auth.LoginCommand
 import org.caique.lobbypluginv1.auth.RegisterCommand
 import org.caique.lobbypluginv1.scoreboard.ScoreboardManager
 import org.caique.lobbypluginv1.scoreboard.ScoreboardListener
+import org.caique.lobbypluginv1.chatmanager.ChatManager
+import org.caique.lobbypluginv1.chatmanager.ChatListener
+import org.caique.lobbypluginv1.tablist.TablistManager
+import org.caique.lobbypluginv1.tablist.TablistListener
 
 class Lobbypluginv1 : JavaPlugin() {
 
@@ -16,32 +20,44 @@ class Lobbypluginv1 : JavaPlugin() {
 
     private lateinit var authManager: AuthManager
     private lateinit var scoreboardManager: ScoreboardManager
+    private lateinit var chatManager: ChatManager
+    private lateinit var tablistManager: TablistManager
 
     override fun onEnable() {
         logger.info("Iniciando $pluginName v$version...")
 
         initializeAuthSystem()
         initializeScoreboardSystem()
+        initializeChatSystem()
+        initializeTablistSystem()
         registerCommands()
         registerEvents()
 
         logger.info("$pluginName v$version foi carregado com sucesso!")
         logger.info("Sistema de autenticação ativo!")
         logger.info("Sistema de scoreboard ativo!")
+        logger.info("Sistema de chat personalizado ativo!")
+        logger.info("Sistema de tablist personalizada ativo!")
         logger.info("Desenvolvido por $author")
     }
 
     override fun onDisable() {
         logger.info("Desligando $pluginName v$version...")
 
+        if (::tablistManager.isInitialized) {
+            tablistManager.shutdown()
+        }
+
+        if (::chatManager.isInitialized) {
+            chatManager.shutdown()
+        }
+
         if (::scoreboardManager.isInitialized) {
             scoreboardManager.shutdown()
-            logger.info("Sistema de scoreboard finalizado!")
         }
 
         if (::authManager.isInitialized) {
             authManager.shutdown()
-            logger.info("Sistema de autenticação finalizado!")
         }
 
         logger.info("$pluginName v$version foi descarregado!")
@@ -57,27 +73,32 @@ class Lobbypluginv1 : JavaPlugin() {
         scoreboardManager.initialize()
     }
 
+    private fun initializeChatSystem() {
+        chatManager = ChatManager()
+        chatManager.initialize()
+    }
+
+    private fun initializeTablistSystem() {
+        tablistManager = TablistManager()
+        tablistManager.initialize()
+    }
+
     private fun registerCommands() {
         getCommand("login")?.setExecutor(LoginCommand(authManager))
         getCommand("register")?.setExecutor(RegisterCommand(authManager))
-
-        logger.info("Comandos registrados:")
-        logger.info("- /login <senha>")
-        logger.info("- /register <senha> <confirmar_senha>")
     }
 
     private fun registerEvents() {
         server.pluginManager.registerEvents(AuthListener(authManager), this)
         server.pluginManager.registerEvents(ScoreboardListener(scoreboardManager), this)
-
-        logger.info("Sistemas ativos:")
-        logger.info("- Proteção de autenticação")
-        logger.info("- Scoreboard animada")
-        logger.info("- Integração auth + scoreboard")
+        server.pluginManager.registerEvents(ChatListener(chatManager), this)
+        server.pluginManager.registerEvents(TablistListener(tablistManager), this)
     }
 
     fun getAuthManager(): AuthManager = authManager
     fun getScoreboardManager(): ScoreboardManager = scoreboardManager
+    fun getChatManager(): ChatManager = chatManager
+    fun getTablistManager(): TablistManager = tablistManager
 
     companion object {
         lateinit var instance: Lobbypluginv1
@@ -89,6 +110,14 @@ class Lobbypluginv1 : JavaPlugin() {
 
         fun getScoreboardManager(): ScoreboardManager {
             return instance.scoreboardManager
+        }
+
+        fun getChatManager(): ChatManager {
+            return instance.chatManager
+        }
+
+        fun getTablistManager(): TablistManager {
+            return instance.tablistManager
         }
     }
 

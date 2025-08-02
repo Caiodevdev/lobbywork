@@ -3,7 +3,7 @@ version: '${project.version}'
 main: org.caique.lobbypluginv1.Lobbypluginv1
 api-version: '1.21'
 author: Caique
-description: Plugin de Lobby para Minecraft 1.21 com sistema de autenticação
+description: Plugin de Lobby para Minecraft 1.21 com sistema de autenticação, scoreboard e chat personalizado
 
 commands:
   login:
