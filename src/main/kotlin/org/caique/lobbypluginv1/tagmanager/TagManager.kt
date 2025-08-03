@@ -10,7 +10,6 @@ class TagManager {
 
     private val plugin = Lobbypluginv1.instance
     private val database = TagDatabase()
-    private val nametagManager = PacketNametagManager()
 
     private val playerTags = ConcurrentHashMap<UUID, Tag>()
 
@@ -24,19 +23,22 @@ class TagManager {
 
     fun loadPlayerTag(player: Player) {
         val uuid = player.uniqueId
-
-        // Configura scoreboard primeiro
-        nametagManager.setupPlayerScoreboard(player)
+        plugin.logger.info("Carregando tag para ${player.name} (${uuid})")
 
         database.hasPlayerRecord(uuid).thenAccept { hasRecord ->
+            plugin.logger.info("Player ${player.name} tem registro: $hasRecord")
+
             if (!hasRecord) {
                 val defaultTag = TagRegistry.getDefaultTag()
                 playerTags[uuid] = defaultTag
                 database.setPlayerTag(uuid, defaultTag.id)
 
+                plugin.logger.info("Tag padrão '${defaultTag.id}' definida para ${player.name}")
+
                 Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                     if (player.isOnline) {
-                        updatePlayerDisplays(player)
+                        plugin.logger.info("Notificando ScoreboardManager sobre nova tag...")
+                        notifyScoreboardManager(player)
                     }
                 }, 5L)
             } else {
@@ -44,9 +46,12 @@ class TagManager {
                     val tag = TagRegistry.getTag(tagId) ?: TagRegistry.getDefaultTag()
                     playerTags[uuid] = tag
 
+                    plugin.logger.info("Tag '${tag.id}' carregada para ${player.name}")
+
                     Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                         if (player.isOnline) {
-                            updatePlayerDisplays(player)
+                            plugin.logger.info("Notificando ScoreboardManager sobre tag carregada...")
+                            notifyScoreboardManager(player)
                         }
                     }, 5L)
                 }
@@ -66,18 +71,18 @@ class TagManager {
         val oldTag = playerTags[uuid]
         playerTags[uuid] = tag
 
-        // Atualiza imediatamente
-        updatePlayerDisplays(player)
+        // Notifica o ScoreboardManager imediatamente
+        notifyScoreboardManager(player)
 
         database.setPlayerTag(uuid, tagId).thenAccept { success ->
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 if (success) {
                     TagUtils.sendSuccessMessage(player, "Tag ${tag.getFormattedTag()} §aequipada com sucesso!")
 
-                    // Atualiza para outros jogadores com delay pequeno
+                    // Força refresh completo no ScoreboardManager
                     Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                        updateOtherPlayersView(player)
-                    }, 3L)
+                        notifyScoreboardManager(player)
+                    }, 5L)
 
                     // Notifica sobre o símbolo especial se não for tag padrão
                     if (tag.id != "membro") {
@@ -87,7 +92,7 @@ class TagManager {
                     // Reverte se deu erro
                     if (oldTag != null) {
                         playerTags[uuid] = oldTag
-                        updatePlayerDisplays(player)
+                        notifyScoreboardManager(player)
                     }
                     TagUtils.sendErrorMessage(player, "Erro ao salvar sua tag!")
                 }
@@ -95,6 +100,15 @@ class TagManager {
         }
 
         return true
+    }
+
+    private fun notifyScoreboardManager(player: Player) {
+        try {
+            val scoreboardManager = Lobbypluginv1.getScoreboardManager()
+            scoreboardManager.onPlayerTagChanged(player)
+        } catch (e: Exception) {
+            plugin.logger.warning("Erro ao notificar ScoreboardManager para ${player.name}: ${e.message}")
+        }
     }
 
     fun getPlayerTag(uuid: UUID): Tag {
@@ -145,113 +159,6 @@ class TagManager {
         TagUtils.playNotificationSound(player)
     }
 
-    private fun updatePlayerDisplays(player: Player) {
-        updatePlayerNameTag(player)
-        updatePlayerTablistName(player)
-        updatePlayerDisplayName(player)
-    }
-
-    private fun updatePlayerNameTag(player: Player) {
-        val tag = getPlayerTag(player.uniqueId)
-        val nameTag = if (tag.id != "membro") {
-            "§l★ ${tag.getFormattedTag()} §f${player.name}"
-        } else {
-            "§f${player.name}"
-        }
-
-        // Múltiplas tentativas para compatibilidade
-        try {
-            // Método 1: CustomName com visibility
-            player.setCustomName(nameTag)
-            player.setCustomNameVisible(true)
-
-            // Método 2: Usando reflection para forçar atualização
-            val craftPlayer = player.javaClass
-            val getHandle = craftPlayer.getMethod("getHandle")
-            val entityPlayer = getHandle.invoke(player)
-
-            // Força refresh da entidade
-            for (other in Bukkit.getOnlinePlayers()) {
-                if (other != player && other.canSee(player)) {
-                    other.hidePlayer(plugin, player)
-                    Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                        if (player.isOnline && other.isOnline) {
-                            other.showPlayer(plugin, player)
-                        }
-                    }, 1L)
-                }
-            }
-
-        } catch (e: Exception) {
-            // Método 3: Fallback usando comando
-            try {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "data modify entity ${player.uniqueId} CustomName set value '{\"text\":\"$nameTag\"}'"
-                )
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "data modify entity ${player.uniqueId} CustomNameVisible set value 1b"
-                )
-            } catch (ex: Exception) {
-                // Método 4: Usando teams (scoreboard)
-                updateNameTagWithTeams(player, nameTag)
-            }
-        }
-    }
-
-    private fun updateNameTagWithTeams(player: Player, nameTag: String) {
-        try {
-            val scoreboard = Bukkit.getScoreboardManager()?.mainScoreboard ?: return
-            val teamName = "tag_${player.name.lowercase()}"
-
-            // Remove team existente se houver
-            scoreboard.getTeam(teamName)?.unregister()
-
-            // Cria novo team
-            val team = scoreboard.registerNewTeam(teamName)
-            team.setPrefix(nameTag.replace(player.name, ""))
-            team.addEntry(player.name)
-
-            // Aplica para todos os jogadores
-            for (other in Bukkit.getOnlinePlayers()) {
-                other.scoreboard = scoreboard
-            }
-
-        } catch (e: Exception) {
-            plugin.logger.warning("Erro ao atualizar nametag para ${player.name}: ${e.message}")
-        }
-    }
-
-    private fun updatePlayerTablistName(player: Player) {
-        val tag = getPlayerTag(player.uniqueId)
-        val tabName = "${tag.getFormattedTag()} §f${player.name}"
-
-        // Spigot/Paper suporta nomes mais longos na tablist
-        try {
-            player.setPlayerListName(tabName)
-        } catch (e: Exception) {
-            // Fallback para nome mais curto se der erro
-            if (tabName.length > 16) {
-                player.setPlayerListName("${tag.color}${player.name}")
-            }
-        }
-    }
-
-    private fun updatePlayerDisplayName(player: Player) {
-        val tag = getPlayerTag(player.uniqueId)
-        val displayName = "${tag.getFormattedTag()} §f${player.name}"
-        player.setDisplayName(displayName)
-    }
-
-    private fun updateOtherPlayersView(player: Player) {
-        // Atualiza displays
-        updatePlayerDisplays(player)
-
-        // Força refresh do scoreboard
-        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            nametagManager.refreshAllNametags()
-        }, 2L)
-    }
-
     fun formatChatMessage(player: Player, message: String): String {
         val tag = getPlayerTag(player.uniqueId)
         return "${tag.getFormattedTag()} §f${player.name}§7: §7$message"
@@ -259,11 +166,6 @@ class TagManager {
 
     fun unloadPlayerData(uuid: UUID) {
         playerTags.remove(uuid)
-
-        val player = Bukkit.getPlayer(uuid)
-        if (player != null) {
-            nametagManager.cleanupPlayer(player)
-        }
     }
 
     fun reloadPlayerTags() {
@@ -273,7 +175,6 @@ class TagManager {
     }
 
     fun shutdown() {
-        nametagManager.cleanup()
         playerTags.clear()
         database.disconnect()
     }
