@@ -85,9 +85,9 @@ class CheckPunishCommand(private val punishManager: PunishManager) : CommandExec
             val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm")
             val formattedDate = sdf.format(date)
 
-            // Aplicar a cor do status a toda a linha da punição
+
             val punishmentComponent = TextComponent(
-                "$statusColor#${punishment.id} $typeText - ${punishment.reason} (${formattedDate}) - $statusText"
+                "$statusColor#${punishment.id} $typeText - ${punishment.reason} - $statusText"
             )
 
             val detailsBuilder = ComponentBuilder("")
@@ -110,9 +110,7 @@ class CheckPunishCommand(private val punishManager: PunishManager) : CommandExec
                 detailsBuilder.create()
             )
 
-            // Adicionar botão de perdão se o jogador tiver permissão e a punição estiver ativa
             if (player.hasPermission("lobbyplugin.pardon") && punishment.status == PunishStatus.ATIVO) {
-                // A cor do botão também pode ser alterada para contrastar
                 val pardonComponent = TextComponent(" §f[Perdoar]")
                 pardonComponent.clickEvent = ClickEvent(
                     ClickEvent.Action.RUN_COMMAND,
