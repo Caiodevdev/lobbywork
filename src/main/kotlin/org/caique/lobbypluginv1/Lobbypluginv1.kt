@@ -14,6 +14,12 @@ import org.caique.lobbypluginv1.tablist.TablistListener
 import org.caique.lobbypluginv1.friends.FriendsManager
 import org.caique.lobbypluginv1.friends.FriendsListener
 import org.caique.lobbypluginv1.friends.FriendsCommand
+import org.caique.lobbypluginv1.tagmanager.TagManager
+import org.caique.lobbypluginv1.tagmanager.TagListener
+import org.caique.lobbypluginv1.tagmanager.TagsCommand
+import org.caique.lobbypluginv1.tagmanager.TagCommand
+import org.caique.lobbypluginv1.tagmanager.NametagTestCommand
+
 
 class Lobbypluginv1 : JavaPlugin() {
 
@@ -26,6 +32,7 @@ class Lobbypluginv1 : JavaPlugin() {
     private lateinit var chatManager: ChatManager
     private lateinit var tablistManager: TablistManager
     private lateinit var friendsManager: FriendsManager
+    private lateinit var tagManager: TagManager
 
     override fun onEnable() {
         logger.info("Iniciando $pluginName v$version...")
@@ -35,6 +42,7 @@ class Lobbypluginv1 : JavaPlugin() {
         initializeChatSystem()
         initializeTablistSystem()
         initializeFriendsSystem()
+        initializeTagSystem()
         registerCommands()
         registerEvents()
 
@@ -44,11 +52,16 @@ class Lobbypluginv1 : JavaPlugin() {
         logger.info("Sistema de chat personalizado ativo!")
         logger.info("Sistema de tablist personalizada ativo!")
         logger.info("Sistema de amigos ativo!")
+        logger.info("Sistema de tags ativo!")
         logger.info("Desenvolvido por $author")
     }
 
     override fun onDisable() {
         logger.info("Desligando $pluginName v$version...")
+
+        if (::tagManager.isInitialized) {
+            tagManager.shutdown()
+        }
 
         if (::friendsManager.isInitialized) {
             friendsManager.shutdown()
@@ -98,10 +111,18 @@ class Lobbypluginv1 : JavaPlugin() {
         friendsManager.initialize()
     }
 
+    private fun initializeTagSystem() {
+        tagManager = TagManager()
+        tagManager.initialize()
+    }
+
     private fun registerCommands() {
         getCommand("login")?.setExecutor(LoginCommand(authManager))
         getCommand("register")?.setExecutor(RegisterCommand(authManager))
         getCommand("amigos")?.setExecutor(FriendsCommand(friendsManager))
+        getCommand("tags")?.setExecutor(TagsCommand(tagManager))
+        getCommand("tag")?.setExecutor(TagCommand(tagManager))
+        getCommand("nametagtest")?.setExecutor(NametagTestCommand(tagManager))
     }
 
     private fun registerEvents() {
@@ -110,6 +131,7 @@ class Lobbypluginv1 : JavaPlugin() {
         server.pluginManager.registerEvents(ChatListener(chatManager), this)
         server.pluginManager.registerEvents(TablistListener(tablistManager), this)
         server.pluginManager.registerEvents(FriendsListener(friendsManager), this)
+        server.pluginManager.registerEvents(TagListener(tagManager), this)
     }
 
     fun getAuthManager(): AuthManager = authManager
@@ -117,6 +139,7 @@ class Lobbypluginv1 : JavaPlugin() {
     fun getChatManager(): ChatManager = chatManager
     fun getTablistManager(): TablistManager = tablistManager
     fun getFriendsManager(): FriendsManager = friendsManager
+    fun getTagManager(): TagManager = tagManager
 
     companion object {
         lateinit var instance: Lobbypluginv1
@@ -140,6 +163,10 @@ class Lobbypluginv1 : JavaPlugin() {
 
         fun getFriendsManager(): FriendsManager {
             return instance.friendsManager
+        }
+
+        fun getTagManager(): TagManager {
+            return instance.tagManager
         }
     }
 

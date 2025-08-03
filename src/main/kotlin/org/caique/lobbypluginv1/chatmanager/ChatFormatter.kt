@@ -1,14 +1,13 @@
 package org.caique.lobbypluginv1.chatmanager
 
 import org.bukkit.entity.Player
+import org.caique.lobbypluginv1.Lobbypluginv1
 
 object ChatFormatter {
 
     fun formatMessage(player: Player, message: String): String {
-        val playerName = player.name
-        val formattedMessage = "§7$message"
-
-        return "§f$playerName: $formattedMessage"
+        val tagManager = Lobbypluginv1.instance.getTagManager()
+        return tagManager.formatChatMessage(player, message)
     }
 
     fun stripColors(message: String): String {

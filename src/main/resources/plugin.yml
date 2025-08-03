@@ -21,6 +21,19 @@ commands:
     usage: /amigos <listar|add|remove|aceitar|recusar> [nick]
     aliases: [friends, friend]
 
+  tags:
+    description: Ver suas tags disponíveis
+    usage: /tags
+
+  tag:
+    description: Gerenciar suas tags
+    usage: /tag <set|preview|list> [id]
+
+  nametagtest:
+    description: Testar sistema de nametags
+    usage: /nametagtest [force]
+    permission: op
+
 permissions:
   lobby.auth.bypass:
     description: Bypass do sistema de autenticação
@@ -29,3 +42,27 @@ permissions:
   lobby.friends.admin:
     description: Permissões administrativas do sistema de amigos
     default: op
+
+  lobby.tag.membro:
+    description: Tag de Membro
+    default: true
+
+  lobby.tag.ajudante:
+    description: Tag de Ajudante
+    default: false
+
+  lobby.tag.moderador:
+    description: Tag de Moderador
+    default: false
+
+  lobby.tag.admin:
+    description: Tag de Admin
+    default: false
+
+  lobby.tag.gerente:
+    description: Tag de Gerente
+    default: false
+
+  lobby.tag.master:
+    description: Tag de Master
+    default: false
