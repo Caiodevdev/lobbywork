@@ -8,11 +8,10 @@ import org.bukkit.event.player.PlayerQuitEvent
 
 class TagListener(private val tagManager: TagManager) : Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR) // Mudou para MONITOR para ser executado depois do ScoreboardManager
+    @EventHandler(priority = EventPriority.MONITOR)
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
 
-        // Delay maior para garantir que o ScoreboardManager já criou o scoreboard
         org.bukkit.Bukkit.getScheduler().runTaskLater(
             org.caique.lobbypluginv1.Lobbypluginv1.instance,
             Runnable {
@@ -20,7 +19,7 @@ class TagListener(private val tagManager: TagManager) : Listener {
                     tagManager.loadPlayerTag(player)
                 }
             },
-            30L // Aumentou o delay para 1.5 segundos
+            30L
         )
     }
 

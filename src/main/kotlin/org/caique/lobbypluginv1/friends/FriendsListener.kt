@@ -12,7 +12,6 @@ class FriendsListener(private val friendsManager: FriendsManager) : Listener {
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
 
-        // Carrega dados do jogador após um pequeno delay
         org.bukkit.Bukkit.getScheduler().runTaskLater(
             org.caique.lobbypluginv1.Lobbypluginv1.instance,
             Runnable {

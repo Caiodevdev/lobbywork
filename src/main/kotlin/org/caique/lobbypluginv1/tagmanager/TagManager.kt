@@ -71,7 +71,6 @@ class TagManager {
         val oldTag = playerTags[uuid]
         playerTags[uuid] = tag
 
-        // Notifica o ScoreboardManager imediatamente
         notifyScoreboardManager(player)
 
         database.setPlayerTag(uuid, tagId).thenAccept { success ->
@@ -79,17 +78,15 @@ class TagManager {
                 if (success) {
                     TagUtils.sendSuccessMessage(player, "Tag ${tag.getFormattedTag()} §aequipada com sucesso!")
 
-                    // Força refresh completo no ScoreboardManager
                     Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                         notifyScoreboardManager(player)
                     }, 5L)
 
-                    // Notifica sobre o símbolo especial se não for tag padrão
                     if (tag.id != "membro") {
                         TagUtils.sendInfoMessage(player, "Símbolo §l★ §eadicionado em cima da sua cabeça!")
                     }
                 } else {
-                    // Reverte se deu erro
+
                     if (oldTag != null) {
                         playerTags[uuid] = oldTag
                         notifyScoreboardManager(player)

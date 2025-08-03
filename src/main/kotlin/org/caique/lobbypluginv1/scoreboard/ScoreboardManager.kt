@@ -17,11 +17,9 @@ class ScoreboardManager {
     private val playerTeams = ConcurrentHashMap<UUID, Team>()
     private var ticks = 0
 
-    // SCOREBOARD ÚNICO COMPARTILHADO
     private var sharedScoreboard: Scoreboard? = null
 
     fun initialize() {
-        // Inicializa o scoreboard compartilhado
         val manager = Bukkit.getScoreboardManager()
         if (manager != null) {
             sharedScoreboard = manager.newScoreboard
@@ -37,10 +35,8 @@ class ScoreboardManager {
     fun createScoreboard(player: Player) {
         val scoreboard = sharedScoreboard ?: return
 
-        // Cria objetivo individual para cada jogador no scoreboard compartilhado
         val objectiveName = "lobby_${player.name.lowercase()}"
 
-        // Remove objetivo existente se houver
         val existingObjective = scoreboard.getObjective(objectiveName)
         existingObjective?.unregister()
 
@@ -54,15 +50,12 @@ class ScoreboardManager {
 
         updateScoreboard(player)
 
-        // Carrega a tag do jogador no mesmo scoreboard
         loadPlayerTag(player)
     }
 
     fun removeScoreboard(player: Player) {
-        // Remove team da tag se existir
         removePlayerTeam(player)
 
-        // Remove objetivo individual
         val objective = playerObjectives[player.uniqueId]
         if (objective != null) {
             try {
@@ -144,8 +137,6 @@ class ScoreboardManager {
         }
     }
 
-    // ===== SISTEMA DE TAGS INTEGRADO =====
-
     fun loadPlayerTag(player: Player) {
         val uuid = player.uniqueId
         val tagManager = Lobbypluginv1.getTagManager()
@@ -166,13 +157,10 @@ class ScoreboardManager {
 
         plugin.logger.info("Atualizando nametag no scoreboard compartilhado para ${player.name} com tag ${tag.id}")
 
-        // Remove team anterior se existir
         removePlayerTeam(player)
 
-        // Cria novo team para a tag
         createPlayerTeam(player, scoreboard, tag)
 
-        // Atualiza outros aspectos
         updatePlayerDisplays(player, tag)
     }
 
@@ -180,11 +168,9 @@ class ScoreboardManager {
         try {
             val teamName = "tag_${player.name.lowercase()}"
 
-            // Remove team existente se houver
             val existingTeam = scoreboard.getTeam(teamName)
             existingTeam?.unregister()
 
-            // Cria novo team
             val team = scoreboard.registerNewTeam(teamName)
 
             val prefix = if (tag.id != "membro") {
@@ -198,15 +184,13 @@ class ScoreboardManager {
             team.setCanSeeFriendlyInvisibles(false)
             team.setAllowFriendlyFire(true)
 
-            // Adiciona o jogador ao team
             team.addEntry(player.name)
 
-            // Armazena referência
             playerTeams[player.uniqueId] = team
 
             plugin.logger.info("Team '${teamName}' criado com prefix '${prefix}' para ${player.name}")
 
-            // Força outros jogadores a ver as mudanças
+
             refreshPlayerForOthers(player)
 
         } catch (e: Exception) {
@@ -232,7 +216,6 @@ class ScoreboardManager {
     }
 
     private fun updatePlayerDisplays(player: Player, tag: org.caique.lobbypluginv1.tagmanager.Tag) {
-        // CustomName
         try {
             val nameTag = if (tag.id != "membro") {
                 "§l★ ${tag.getFormattedTag()} §f${player.name}"
@@ -247,7 +230,6 @@ class ScoreboardManager {
             plugin.logger.warning("Erro ao definir CustomName para ${player.name}: ${e.message}")
         }
 
-        // PlayerListName (Tablist)
         try {
             val tabName = "${tag.getFormattedTag()} §f${player.name}"
             player.setPlayerListName(tabName)
@@ -260,7 +242,6 @@ class ScoreboardManager {
             }
         }
 
-        // DisplayName (Chat)
         try {
             val displayName = "${tag.getFormattedTag()} §f${player.name}"
             player.setDisplayName(displayName)
@@ -270,7 +251,6 @@ class ScoreboardManager {
     }
 
     private fun refreshPlayerForOthers(player: Player) {
-        // Força outros jogadores a "recarregar" este jogador
         for (other in Bukkit.getOnlinePlayers()) {
             if (other != player && other.canSee(player)) {
                 try {
@@ -282,13 +262,11 @@ class ScoreboardManager {
                         }
                     }, 2L)
                 } catch (e: Exception) {
-                    // Ignora erros individuais
                 }
             }
         }
     }
 
-    // Método para o TagManager chamar quando uma tag for alterada
     fun onPlayerTagChanged(player: Player) {
         if (player.isOnline && playerObjectives.containsKey(player.uniqueId)) {
             loadPlayerTag(player)

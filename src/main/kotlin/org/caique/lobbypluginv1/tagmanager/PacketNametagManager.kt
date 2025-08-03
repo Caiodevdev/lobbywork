@@ -17,10 +17,8 @@ class PacketNametagManager {
     fun setNametag(player: Player, prefix: String, suffix: String = "") {
         val teamName = "tag_${player.name.lowercase()}"
 
-        // Remove team anterior se existir
         removePlayerFromTeam(player)
 
-        // Cria novo team para este jogador
         val scoreboard = getOrCreateScoreboard()
         var team = scoreboard.getTeam(teamName)
 
@@ -30,21 +28,17 @@ class PacketNametagManager {
 
         team = scoreboard.registerNewTeam(teamName)
 
-        // Configura o team
         try {
             team.setPrefix(prefix)
             team.setSuffix(suffix)
             team.setCanSeeFriendlyInvisibles(false)
             team.setAllowFriendlyFire(true)
 
-            // Adiciona o jogador ao team
             team.addEntry(player.name)
 
-            // Armazena referências
             teams[teamName] = team
             playerTeams[player.uniqueId] = teamName
 
-            // Aplica para todos os jogadores online
             applyScoreboardToAll(scoreboard)
 
             plugin.logger.info("Nametag definida para ${player.name}: $prefix${player.name}$suffix")
@@ -104,12 +98,11 @@ class PacketNametagManager {
     }
 
     fun cleanup() {
-        // Remove todos os teams criados
         for (team in teams.values) {
             try {
                 team.unregister()
             } catch (e: Exception) {
-                // Ignora erros de cleanup
+
             }
         }
         teams.clear()
