@@ -19,7 +19,11 @@ import org.caique.lobbypluginv1.tagmanager.TagListener
 import org.caique.lobbypluginv1.tagmanager.TagsCommand
 import org.caique.lobbypluginv1.tagmanager.TagCommand
 import org.caique.lobbypluginv1.tagmanager.NametagTestCommand
-
+import org.caique.lobbypluginv1.punish.PunishManager
+import org.caique.lobbypluginv1.punish.PunishListener
+import org.caique.lobbypluginv1.punish.PunishCommand
+import org.caique.lobbypluginv1.punish.CheckPunishCommand
+import org.caique.lobbypluginv1.punish.PardonCommand
 
 class Lobbypluginv1 : JavaPlugin() {
 
@@ -33,6 +37,7 @@ class Lobbypluginv1 : JavaPlugin() {
     private lateinit var tablistManager: TablistManager
     private lateinit var friendsManager: FriendsManager
     private lateinit var tagManager: TagManager
+    private lateinit var punishManager: PunishManager
 
     override fun onEnable() {
         logger.info("Iniciando $pluginName v$version...")
@@ -43,6 +48,7 @@ class Lobbypluginv1 : JavaPlugin() {
         initializeTablistSystem()
         initializeFriendsSystem()
         initializeTagSystem()
+        initializePunishSystem()
         registerCommands()
         registerEvents()
 
@@ -52,6 +58,10 @@ class Lobbypluginv1 : JavaPlugin() {
 
     override fun onDisable() {
         logger.info("Desligando $pluginName v$version...")
+
+        if (::punishManager.isInitialized) {
+            punishManager.shutdown()
+        }
 
         if (::tagManager.isInitialized) {
             tagManager.shutdown()
@@ -110,6 +120,11 @@ class Lobbypluginv1 : JavaPlugin() {
         tagManager.initialize()
     }
 
+    private fun initializePunishSystem() {
+        punishManager = PunishManager()
+        punishManager.initialize()
+    }
+
     private fun registerCommands() {
         getCommand("login")?.setExecutor(LoginCommand(authManager))
         getCommand("register")?.setExecutor(RegisterCommand(authManager))
@@ -117,6 +132,13 @@ class Lobbypluginv1 : JavaPlugin() {
         getCommand("tags")?.setExecutor(TagsCommand(tagManager))
         getCommand("tag")?.setExecutor(TagCommand(tagManager))
         getCommand("nametagtest")?.setExecutor(NametagTestCommand(tagManager))
+        getCommand("pardon")?.setExecutor(PardonCommand(punishManager))
+
+        // Sistema de punição com chat interativo
+        val punishCommand = PunishCommand(punishManager)
+
+        getCommand("punir")?.setExecutor(punishCommand)
+        getCommand("checkpunir")?.setExecutor(CheckPunishCommand(punishManager))
     }
 
     private fun registerEvents() {
@@ -126,6 +148,7 @@ class Lobbypluginv1 : JavaPlugin() {
         server.pluginManager.registerEvents(TablistListener(tablistManager), this)
         server.pluginManager.registerEvents(FriendsListener(friendsManager), this)
         server.pluginManager.registerEvents(TagListener(tagManager), this)
+        server.pluginManager.registerEvents(PunishListener(punishManager), this)
     }
 
     fun getAuthManager(): AuthManager = authManager
@@ -134,6 +157,7 @@ class Lobbypluginv1 : JavaPlugin() {
     fun getTablistManager(): TablistManager = tablistManager
     fun getFriendsManager(): FriendsManager = friendsManager
     fun getTagManager(): TagManager = tagManager
+    fun getPunishManager(): PunishManager = punishManager
 
     companion object {
         lateinit var instance: Lobbypluginv1
@@ -161,6 +185,10 @@ class Lobbypluginv1 : JavaPlugin() {
 
         fun getTagManager(): TagManager {
             return instance.tagManager
+        }
+
+        fun getPunishManager(): PunishManager {
+            return instance.punishManager
         }
     }
 

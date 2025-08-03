@@ -33,6 +33,18 @@ commands:
     description: Testar sistema de nametags
     usage: /nametagtest [force]
     permission: op
+  punir:
+    description: Punir um jogador
+    usage: /punir <jogador>
+    aliases: [ban, mute]
+  checkpunir:
+    description: Verificar punições de um jogador
+    usage: /checkpunir <jogador>
+    aliases: [checkpunish, punições, punishments]
+  pardon:
+    description: Perdoar uma punição
+    usage: /pardon <id>
+    aliases: [ perdoar, unpunish ]
 
 permissions:
   lobby.auth.bypass:
